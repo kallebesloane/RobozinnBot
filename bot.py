@@ -41,7 +41,7 @@ def verificar_jogos():
         if lista:
             mensagem = "🚨 Jogos com o time da casa perdendo por 1 gol após 70 minutos:\n\n" + "\n\n".join(lista)
             for cid in CHAT_IDS:
-                bot.send_message(chat_id=cid, text=mensagem, parse_mode="Markdown")
+                bot.send_message(chat_id=cid, text=mensagem, parse_mode="Markdown", disable_web_page_preview=True)
 
     except Exception as e:
         for cid in CHAT_IDS:
