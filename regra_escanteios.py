@@ -1,3 +1,4 @@
+print("[DEBUG] regra_escanteios.py carregado")
 def verificar_escanteios(jogos):
     resultados = []
 
