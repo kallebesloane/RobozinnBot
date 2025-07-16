@@ -1,3 +1,4 @@
+print("[DEBUG] regra_expulsos.py carregado")
 def verificar_expulsos(jogos):
     resultados = []
 
