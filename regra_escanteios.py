@@ -1,4 +1,7 @@
 print("[DEBUG] regra_escanteios.py carregado")
+
+from probabilidade_escanteios import calcular_probabilidade_escanteios
+
 def verificar_escanteios(jogos):
     resultados = []
 
@@ -7,13 +10,18 @@ def verificar_escanteios(jogos):
         gols_casa = jogo['goals']['home']
         gols_fora = jogo['goals']['away']
         liga = jogo['league']['name']
+        casa = jogo['teams']['home']['name']
+        fora = jogo['teams']['away']['name']
+        id_casa = jogo['teams']['home']['id']
+        id_fora = jogo['teams']['away']['id']
 
+        # Alerta se for a partir dos 70 minutos e time da casa estiver perdendo por 1
         if minuto is not None and minuto >= 70 and (gols_fora - gols_casa == 1):
-            casa = jogo['teams']['home']['name']
-            fora = jogo['teams']['away']['name']
-            placar = f"{gols_casa} x {gols_fora}"
+            # Calcula a probabilidade
+            probabilidade = calcular_probabilidade_escanteios(id_casa, id_fora)
+
             resultados.append(
-                f"🟥 ESCANTEIOS\n🏟️ Liga: {liga}\n⏱ {minuto}min — {casa} perdendo pra {fora}\n🔢 Placar: {placar}\n🔗 [Aposte](https://www.bet365.com/#/IP/B1)"
+                f"🟥 ESCANTEIOS\n🏟️ Liga: {liga}\n⏱ {minuto}min — {casa} perdendo pra {fora}\n🔢 Placar: {gols_casa} x {gols_fora}\n{probabilidade}\n🔗 [Aposte](https://www.bet365.com/#/IP/B1)"
             )
 
     return resultados
