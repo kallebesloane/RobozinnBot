@@ -8,7 +8,6 @@ from telegram import Bot
 # Importa os arquivos de regras
 from regra_escanteios import verificar_escanteios
 from regra_expulsos import verificar_expulsos
-from regra_escanteios_green import verificar_sinais as verificar_escanteios_green
 
 app = Flask(__name__)
 
@@ -30,7 +29,6 @@ def verificar_jogos():
         mensagens = []
         mensagens += verificar_escanteios(jogos)
         mensagens += verificar_expulsos(jogos)
-        mensagens += verificar_escanteios_green(jogos)
 
         if mensagens:
             texto = "📊 ALERTAS AO VIVO:\n\n" + "\n\n".join(mensagens)
