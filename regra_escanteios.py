@@ -1,38 +1,27 @@
 print("[DEBUG] regra_escanteios.py carregado")
 
+from probabilidade_escanteios import calcular_probabilidade_escanteios
+
 def verificar_escanteios(jogos):
     resultados = []
 
     for jogo in jogos:
-        try:
-            # Minuto do jogo
-            minuto = jogo['time']['minute'] if 'time' in jogo and jogo['time'] else None
-            if minuto is None or minuto < 70:
-                continue
+        minuto = jogo['fixture']['status']['elapsed']
+        gols_casa = jogo['goals']['home']
+        gols_fora = jogo['goals']['away']
+        liga = jogo['league']['name']
+        casa = jogo['teams']['home']['name']
+        fora = jogo['teams']['away']['name']
+        id_casa = jogo['teams']['home']['id']
+        id_fora = jogo['teams']['away']['id']
 
-            participantes = jogo.get('participants', [])
-            if len(participantes) < 2:
-                continue
+        # Alerta se for a partir dos 70 minutos e time da casa estiver perdendo por 1
+        if minuto is not None and minuto >= 70 and (gols_fora - gols_casa == 1):
+            # Calcula a probabilidade
+            probabilidade = calcular_probabilidade_escanteios(id_casa, id_fora)
 
-            casa = [p for p in participantes if p.get('meta', {}).get('location') == 'home']
-            fora = [p for p in participantes if p.get('meta', {}).get('location') == 'away']
-
-            if not casa or not fora:
-                continue
-
-            time_casa = casa[0]['name']
-            time_fora = fora[0]['name']
-            gols_casa = jogo.get('scores', {}).get('home_score', 0)
-            gols_fora = jogo.get('scores', {}).get('away_score', 0)
-
-            if gols_fora - gols_casa == 1:
-                liga = jogo.get('league', {}).get('name', 'Desconhecida')
-                placar = f"{gols_casa} x {gols_fora}"
-                resultados.append(
-                    f"🟥 ESCANTEIOS\n🏟️ Liga: {liga}\n⏱ {minuto}min — {time_casa} perdendo pra {time_fora}\n🔢 Placar: {placar}\n🔗 [Aposte](https://www.bet365.com/#/IP/B1)"
-                )
-        except Exception as e:
-            print(f"[ERRO escanteios] {e}")
-            continue
+            resultados.append(
+                f"🟥 ESCANTEIOS\n🏟️ Liga: {liga}\n⏱ {minuto}min — {casa} perdendo pra {fora}\n🔢 Placar: {gols_casa} x {gols_fora}\n{probabilidade}\n🔗 [Aposte](https://www.bet365.com/#/IP/B1)"
+            )
 
     return resultados
