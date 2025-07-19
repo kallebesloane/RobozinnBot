@@ -5,27 +5,34 @@ def verificar_escanteios(jogos):
 
     for jogo in jogos:
         try:
-            minuto = jogo.get('time', {}).get('minute')
-            gols_casa = jogo.get('scores', {}).get('localteam_score')
-            gols_fora = jogo.get('scores', {}).get('visitorteam_score')
-            liga = jogo.get('league', {}).get('data', {}).get('name', 'Desconhecida')
-            
-            participantes = jogo.get('participants', {}).get('data', [])
-            casa = ""
-            fora = ""
-            for p in participantes:
-                if p.get('meta', {}).get('location') == 'home':
-                    casa = p.get('name')
-                elif p.get('meta', {}).get('location') == 'away':
-                    fora = p.get('name')
+            # Minuto do jogo
+            minuto = jogo['time']['minute'] if 'time' in jogo and jogo['time'] else None
+            if minuto is None or minuto < 70:
+                continue
 
-            if minuto is not None and minuto >= 70 and gols_casa is not None and gols_fora is not None:
-                if (gols_fora - gols_casa) == 1:
-                    placar = f"{gols_casa} x {gols_fora}"
-                    resultados.append(
-                        f"🟥 ESCANTEIOS\n🏟️ Liga: {liga}\n⏱ {minuto}min — {casa} perdendo pra {fora}\n🔢 Placar: {placar}\n🔗 [Aposte](https://www.bet365.com/#/IP/B1)"
-                    )
+            participantes = jogo.get('participants', [])
+            if len(participantes) < 2:
+                continue
+
+            casa = [p for p in participantes if p.get('meta', {}).get('location') == 'home']
+            fora = [p for p in participantes if p.get('meta', {}).get('location') == 'away']
+
+            if not casa or not fora:
+                continue
+
+            time_casa = casa[0]['name']
+            time_fora = fora[0]['name']
+            gols_casa = jogo.get('scores', {}).get('home_score', 0)
+            gols_fora = jogo.get('scores', {}).get('away_score', 0)
+
+            if gols_fora - gols_casa == 1:
+                liga = jogo.get('league', {}).get('name', 'Desconhecida')
+                placar = f"{gols_casa} x {gols_fora}"
+                resultados.append(
+                    f"🟥 ESCANTEIOS\n🏟️ Liga: {liga}\n⏱ {minuto}min — {time_casa} perdendo pra {time_fora}\n🔢 Placar: {placar}\n🔗 [Aposte](https://www.bet365.com/#/IP/B1)"
+                )
         except Exception as e:
-            print(f"[ERRO] ao processar jogo: {e}")
+            print(f"[ERRO escanteios] {e}")
+            continue
 
     return resultados
