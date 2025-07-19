@@ -39,8 +39,9 @@ def verificar_escanteios(jogos):
         teams = jogo.get("teams", {})
         goals = jogo.get("goals", {})
         status = fixture.get("status", {})
+        
         minutos = status.get("elapsed")
-         if minutos is None:
+        if minutos is None:
            minutos = 0
 
         if minutos < 80:
