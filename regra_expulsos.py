@@ -1,51 +1,43 @@
-import os
-import requests
-
-API_KEY = os.getenv("SPORTMONKS_API_KEY")
-URL_LIVESCORES = "https://api.sportmonks.com/v3/football/livescores/inplay"
-HEADERS = {
-    "accept": "application/json"
-}
-
 print("[DEBUG] regra_expulsos.py carregado")
 
-def verificar_expulsos():
-    try:
-        response = requests.get(
-            URL_LIVESCORES + "?include=participants;events;league",
-            headers=HEADERS,
-            params={"api_token": API_KEY}
-        )
-        data = response.json()
+def verificar_expulsos(jogos):
+    resultados = []
 
-        mensagens = []
-
-        for jogo in data.get("data", []):
-            if not jogo.get("events"):
+    for jogo in jogos:
+        try:
+            minuto = jogo.get('time', {}).get('minute')
+            if minuto is None or minuto < 45:
                 continue
 
-            minuto = jogo.get("time", {}).get("minute", 0)
-            if minuto < 45:
+            participantes = jogo.get('participants', [])
+            if len(participantes) < 2:
                 continue
 
-            expulsos = [e for e in jogo["events"] if e["type"] == "redcard"]
+            casa = [p for p in participantes if p.get('meta', {}).get('location') == 'home']
+            fora = [p for p in participantes if p.get('meta', {}).get('location') == 'away']
 
-            if expulsos:
-                liga = jogo["league"]["name"]
-                casa = jogo["participants"][0]["name"]
-                fora = jogo["participants"][1]["name"]
-                placar_casa = jogo["scores"]["local_score"]
-                placar_fora = jogo["scores"]["visitor_score"]
+            if not casa or not fora:
+                continue
 
-                mensagem = f"ð¨ EXPULSO
-ðï¸ Liga: {liga}
-â± {minuto}min â {casa} x {fora}
-ð´ Jogador expulso!
-ð¢ Placar: {placar_casa} x {placar_fora}"
-                mensagens.append(mensagem)
+            time_casa = casa[0]['name']
+            time_fora = fora[0]['name']
+            red_casa = casa[0].get('meta', {}).get('redcards', 0)
+            red_fora = fora[0].get('meta', {}).get('redcards', 0)
 
-        return mensagens
+            if red_casa > 0 or red_fora > 0:
+                liga = jogo.get('league', {}).get('name', 'Desconhecida')
+                placar = f"{jogo.get('scores', {}).get('home_score', 0)} x {jogo.get('scores', {}).get('away_score', 0)}"
+                mensagem = (
+                    f"🚨 EXPULSO\n"
+                    f"🏟️ Liga: {liga}\n"
+                    f"⏱ {minuto}min — {time_casa} x {time_fora}\n"
+                    f"🟥 Vermelhos: {red_casa} x {red_fora}\n"
+                    f"🔢 Placar: {placar}\n"
+                    f"🔗 [Aposte](https://www.bet365.com/#/IP/B1)"
+                )
+                resultados.append(mensagem)
+        except Exception as e:
+            print(f"[ERRO expulsos] {e}")
+            continue
 
-    except Exception as e:
-        print(f"[ERRO regra_expulsos.py] {e}")
-        return []
+    return resultados
