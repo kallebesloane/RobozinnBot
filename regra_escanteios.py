@@ -1,6 +1,6 @@
 print("[DEBUG] regra_escanteios.py carregado")
 
-def verificar_sinais(jogos):
+def verificar_escanteios(jogos):
     resultados = []
 
     for jogo in jogos:
