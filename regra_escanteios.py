@@ -1,7 +1,5 @@
 print("[DEBUG] regra_escanteios.py carregado")
 
-from probabilidade_escanteios import calcular_probabilidade_escanteios
-
 def verificar_escanteios(jogos):
     resultados = []
 
