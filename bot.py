@@ -5,26 +5,26 @@ import os
 import time
 from telegram import Bot
 
-# Importa os arquivos de regras
 from regra_escanteios import verificar_escanteios
 from regra_expulsos import verificar_expulsos
 
 app = Flask(__name__)
 
-# Carregar variáveis do ambiente
-API_KEY = os.getenv("API_FOOTBALL_KEY")
+# Variáveis de ambiente
+API_KEY = os.getenv("API_FOOTBALL_KEY")  # agora é a chave da SportMonks
 TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
 CHAT_IDS = os.getenv("CHAT_IDS", "").split(",")
 
 bot = Bot(token=TELEGRAM_TOKEN)
 
 def verificar_jogos():
-    url = "https://v3.football.api-sports.io/fixtures?live=all"
-    headers = {"x-apisports-key": API_KEY}
+    url = f"https://api.sportmonks.com/v3/football/fixtures?include=goals,teams,league,stats&filters=live"
+    headers = {"Authorization": f"Bearer {API_KEY}"}
 
     try:
         res = requests.get(url, headers=headers)
-        jogos = res.json().get("response", [])
+        data = res.json()
+        jogos = data.get("data", [])
 
         mensagens = []
         mensagens += verificar_escanteios(jogos)
@@ -48,7 +48,7 @@ threading.Thread(target=iniciar_loop).start()
 
 @app.route('/')
 def index():
-    return "✅ Bot rodando com múltiplas regras (escanteios + expulsos)"
+    return "✅ Bot rodando com SportMonks (escanteios + expulsos)"
 
 if __name__ == '__main__':
     app.run(host="0.0.0.0", port=10000)
