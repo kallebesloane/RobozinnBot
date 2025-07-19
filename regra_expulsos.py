@@ -1,43 +1,33 @@
 print("[DEBUG] regra_expulsos.py carregado")
-
 def verificar_expulsos(jogos):
     resultados = []
 
     for jogo in jogos:
-        try:
-            minuto = jogo.get('time', {}).get('minute')
-            if minuto is None or minuto < 45:
-                continue
+        minuto = jogo['fixture']['status']['elapsed']
+        gols_casa = jogo['goals']['home']
+        gols_fora = jogo['goals']['away']
+        liga = jogo['league']['name']
+        casa = jogo['teams']['home']['name']
+        fora = jogo['teams']['away']['name']
 
-            participantes = jogo.get('participants', [])
-            if len(participantes) < 2:
-                continue
+        # Verifica cartões vermelhos da casa
+        estatisticas = jogo.get('teams', {}).get('home', {})
+        vermelhos = estatisticas.get('red', 0)
 
-            casa = [p for p in participantes if p.get('meta', {}).get('location') == 'home']
-            fora = [p for p in participantes if p.get('meta', {}).get('location') == 'away']
+        # Se o campo 'red' não existir, tenta outro jeito
+        if vermelhos is None:
+            cards = jogo.get('statistics', [])
+            vermelhos = 0
+            for time in cards:
+                if time['team']['name'] == casa:
+                    for estat in time['statistics']:
+                        if estat['type'] == 'Red Cards':
+                            vermelhos = estat['value']
 
-            if not casa or not fora:
-                continue
-
-            time_casa = casa[0]['name']
-            time_fora = fora[0]['name']
-            red_casa = casa[0].get('meta', {}).get('redcards', 0)
-            red_fora = fora[0].get('meta', {}).get('redcards', 0)
-
-            if red_casa > 0 or red_fora > 0:
-                liga = jogo.get('league', {}).get('name', 'Desconhecida')
-                placar = f"{jogo.get('scores', {}).get('home_score', 0)} x {jogo.get('scores', {}).get('away_score', 0)}"
-                mensagem = (
-                    f"🚨 EXPULSO\n"
-                    f"🏟️ Liga: {liga}\n"
-                    f"⏱ {minuto}min — {time_casa} x {time_fora}\n"
-                    f"🟥 Vermelhos: {red_casa} x {red_fora}\n"
-                    f"🔢 Placar: {placar}\n"
-                    f"🔗 [Aposte](https://www.bet365.com/#/IP/B1)"
-                )
-                resultados.append(mensagem)
-        except Exception as e:
-            print(f"[ERRO expulsos] {e}")
-            continue
+        if minuto is not None and minuto >= 70 and (gols_casa - gols_fora == 1) and vermelhos >= 1:
+            placar = f"{gols_casa} x {gols_fora}"
+            resultados.append(
+                f"⚠️ EXPULSÃO EM TIME VENCENDO\n🏟️ Liga: {liga}\n⏱ {minuto}min — {casa} vencendo por 1 gol mas com jogador expulso!\n🔢 Placar: {placar}\n🟥 Cartões vermelhos: {vermelhos}\n🔗 [Aposte](https://www.bet365.com/#/IP/B1)"
+            )
 
     return resultados
