@@ -1,23 +1,34 @@
-print("[DEBUG] regra_escanteios.py carregado")
+print("[DEBUG] regra_expulsos.py carregado")
 
-def verificar_escanteios(jogos):
+def verificar_expulsos(jogos):
     resultados = []
 
     for jogo in jogos:
-        minuto = jogo['fixture']['status']['elapsed']
-        gols_casa = jogo['goals']['home']
-        gols_fora = jogo['goals']['away']
-        liga = jogo['league']['name']
-        casa = jogo['teams']['home']['name']
-        fora = jogo['teams']['away']['name']
-        id_casa = jogo['teams']['home']['id']
-        id_fora = jogo['teams']['away']['id']
+        stats = jogo.get("stats", {}).get("data", [])
+        minuto = jogo["time"]["minute"]
+        status = jogo["time"]["status"]
 
-        # Alerta se for a partir dos 70 minutos e time da casa estiver perdendo por 1
-        if minuto is not None and minuto >= 70 and (gols_fora - gols_casa == 1) 
+        casa = jogo["teams"]["data"]["localteam"]["name"]
+        fora = jogo["teams"]["data"]["visitorteam"]["name"]
+        liga = jogo["league"]["data"]["name"]
 
+        vermelhos_casa = 0
+        vermelhos_fora = 0
+
+        # Verifica cartões vermelhos na estatística
+        for item in stats:
+            if item.get("type") == "redcards":
+                valores = item.get("value", {})
+                vermelhos_casa = int(valores.get("localteam", 0))
+                vermelhos_fora = int(valores.get("visitorteam", 0))
+                break
+
+        # Se algum time tiver 1 ou mais cartões vermelhos
+        if minuto is not None and minuto >= 30 and (vermelhos_casa > 0 or vermelhos_fora > 0):
             resultados.append(
-                f"🟥 ESCANTEIOS\n🏟️ Liga: {liga}\n⏱ {minuto}min — {casa} perdendo pra {fora}\n🔢 Placar: {gols_casa} x {gols_fora}"
+                f"🟥 EXPULSÃO\n🏟️ Liga: {liga}\n⏱ {minuto}min\n"
+                f"📌 Cartões vermelhos: {casa} {vermelhos_casa} x {vermelhos_fora} {fora}\n"
+                f"🔗 [Aposte](https://www.bet365.com/#/IP/B1)"
             )
 
     return resultados
