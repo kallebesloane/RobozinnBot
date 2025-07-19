@@ -17,11 +17,9 @@ def verificar_escanteios(jogos):
 
         # Alerta se for a partir dos 70 minutos e time da casa estiver perdendo por 1
         if minuto is not None and minuto >= 70 and (gols_fora - gols_casa == 1):
-            # Calcula a probabilidade
-            probabilidade = calcular_probabilidade_escanteios(id_casa, id_fora)
 
             resultados.append(
-                f"🟥 ESCANTEIOS\n🏟️ Liga: {liga}\n⏱ {minuto}min — {casa} perdendo pra {fora}\n🔢 Placar: {gols_casa} x {gols_fora}\n{probabilidade}\n🔗 [Aposte](https://www.bet365.com/#/IP/B1)"
+                f"🟥 ESCANTEIOS\n🏟️ Liga: {liga}\n⏱ {minuto}min — {casa} perdendo pra {fora}\n🔢 Placar: {gols_casa} x {gols_fora}"
             )
 
     return resultados
