@@ -1,33 +1,34 @@
 print("[DEBUG] regra_expulsos.py carregado")
+
 def verificar_expulsos(jogos):
     resultados = []
 
     for jogo in jogos:
-        minuto = jogo['fixture']['status']['elapsed']
-        gols_casa = jogo['goals']['home']
-        gols_fora = jogo['goals']['away']
-        liga = jogo['league']['name']
-        casa = jogo['teams']['home']['name']
-        fora = jogo['teams']['away']['name']
+        stats = jogo.get("stats", {}).get("data", [])
+        minuto = jogo["time"]["minute"]
+        status = jogo["time"]["status"]
 
-        # Verifica cartões vermelhos da casa
-        estatisticas = jogo.get('teams', {}).get('home', {})
-        vermelhos = estatisticas.get('red', 0)
+        casa = jogo["teams"]["data"]["localteam"]["name"]
+        fora = jogo["teams"]["data"]["visitorteam"]["name"]
+        liga = jogo["league"]["data"]["name"]
 
-        # Se o campo 'red' não existir, tenta outro jeito
-        if vermelhos is None:
-            cards = jogo.get('statistics', [])
-            vermelhos = 0
-            for time in cards:
-                if time['team']['name'] == casa:
-                    for estat in time['statistics']:
-                        if estat['type'] == 'Red Cards':
-                            vermelhos = estat['value']
+        vermelhos_casa = 0
+        vermelhos_fora = 0
 
-        if minuto is not None and minuto >= 70 and (gols_casa - gols_fora == 1) and vermelhos >= 1:
-            placar = f"{gols_casa} x {gols_fora}"
+        # Verifica cartões vermelhos na estatística
+        for item in stats:
+            if item.get("type") == "redcards":
+                valores = item.get("value", {})
+                vermelhos_casa = int(valores.get("localteam", 0))
+                vermelhos_fora = int(valores.get("visitorteam", 0))
+                break
+
+        # Se algum time tiver 1 ou mais cartões vermelhos
+        if minuto is not None and minuto >= 30 and (vermelhos_casa > 0 or vermelhos_fora > 0):
             resultados.append(
-                f"⚠️ EXPULSÃO EM TIME VENCENDO\n🏟️ Liga: {liga}\n⏱ {minuto}min — {casa} vencendo por 1 gol mas com jogador expulso!\n🔢 Placar: {placar}\n🟥 Cartões vermelhos: {vermelhos}\n🔗 [Aposte](https://www.bet365.com/#/IP/B1)"
+                f"🟥 EXPULSÃO\n🏟️ Liga: {liga}\n⏱ {minuto}min\n"
+                f"📌 Cartões vermelhos: {casa} {vermelhos_casa} x {vermelhos_fora} {fora}\n"
+                f"🔗 [Aposte](https://www.bet365.com/#/IP/B1)"
             )
 
     return resultados
