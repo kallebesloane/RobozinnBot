@@ -35,25 +35,31 @@ def verificar_escanteios(jogos):
     mensagens = []
 
     for jogo in jogos:
-        fixture = jogo["fixture"]
-        teams = jogo["teams"]
-        goals = jogo["goals"]
-        status = fixture["status"]
-        minutos = status["elapsed"] or 0
+        fixture = jogo.get("fixture", {})
+        teams = jogo.get("teams", {})
+        goals = jogo.get("goals", {})
+        status = fixture.get("status", {})
+        minutos = status.get("elapsed", 0)
 
         if minutos < 80:
             continue
 
-        home_time = teams["home"]["name"]
-        away_time = teams["away"]["name"]
-        home_gols = goals["home"]
-        away_gols = goals["away"]
+        home = teams.get("home", {})
+        away = teams.get("away", {})
+        home_time = home.get("name", "Time da Casa")
+        away_time = away.get("name", "Visitante")
+
+        home_gols = goals.get("home", 0)
+        away_gols = goals.get("away", 0)
 
         if home_gols >= away_gols:
             continue
 
-        fixture_id = fixture["id"]
-        liga = fixture["league"]["name"]
+        fixture_id = fixture.get("id")
+        liga = fixture.get("league", {}).get("name", "Liga Desconhecida")
+
+        if not fixture_id:
+            continue
 
         escanteios = get_escanteios(fixture_id)
 
