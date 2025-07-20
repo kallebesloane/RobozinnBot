@@ -1,35 +1,4 @@
-import requests
-import os
-
-API_KEY = os.getenv("API_FOOTBALL_KEY")
-
-def get_escanteios(fixture_id):
-    url = f"https://api-football-v1.p.rapidapi.com/v3/fixtures/statistics?fixture={fixture_id}"
-    headers = {
-        "x-rapidapi-key": API_KEY,
-        "x-rapidapi-host": "api-football-v1.p.rapidapi.com"
-    }
-
-    try:
-        response = requests.get(url, headers=headers)
-        data = response.json().get("response", [])
-
-        if not data or len(data) < 2:
-            return None
-
-        escanteios_total = 0
-
-        for time_stats in data:
-            for stat in time_stats["statistics"]:
-                if stat["type"] == "Corners" and stat["value"] is not None:
-                    escanteios_total += stat["value"]
-
-        return escanteios_total
-
-    except Exception as e:
-        print(f"[ERRO AO BUSCAR ESCANTEIOS] {e}")
-        return None
-
+from get_escanteios import get_escanteios_total
 
 def verificar_escanteios(jogos):
     mensagens = []
@@ -39,10 +8,10 @@ def verificar_escanteios(jogos):
         teams = jogo.get("teams", {})
         goals = jogo.get("goals", {})
         status = fixture.get("status", {})
-        
         minutos = status.get("elapsed")
+
         if minutos is None:
-           minutos = 0
+            minutos = 0
 
         if minutos < 80:
             continue
@@ -55,6 +24,7 @@ def verificar_escanteios(jogos):
         home_gols = goals.get("home", 0)
         away_gols = goals.get("away", 0)
 
+        # Só queremos jogos em que o time da casa está perdendo
         if home_gols >= away_gols:
             continue
 
@@ -64,7 +34,7 @@ def verificar_escanteios(jogos):
         if not fixture_id:
             continue
 
-        escanteios = get_escanteios(fixture_id)
+        escanteios = get_escanteios_total(fixture_id)
 
         if escanteios is None:
             continue
