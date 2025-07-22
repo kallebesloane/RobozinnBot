@@ -1,4 +1,8 @@
-from get_escanteios import get_escanteios_total
+import requests
+import os
+from get_escanteios import get_escanteios
+
+API_KEY = os.getenv("API_FOOTBALL_KEY")
 
 def verificar_escanteios(jogos):
     mensagens = []
@@ -7,11 +11,9 @@ def verificar_escanteios(jogos):
         fixture = jogo.get("fixture", {})
         teams = jogo.get("teams", {})
         goals = jogo.get("goals", {})
+        league = jogo.get("league", {})
         status = fixture.get("status", {})
-        minutos = status.get("elapsed")
-
-        if minutos is None:
-            minutos = 0
+        minutos = status.get("elapsed", 0)
 
         if minutos < 80:
             continue
@@ -24,17 +26,16 @@ def verificar_escanteios(jogos):
         home_gols = goals.get("home", 0)
         away_gols = goals.get("away", 0)
 
-        # Só queremos jogos em que o time da casa está perdendo
         if home_gols >= away_gols:
             continue
 
         fixture_id = fixture.get("id")
-        liga = fixture.get("league", {}).get("name", "Liga Desconhecida")
+        liga = league.get("name", "Liga Desconhecida")  # Corrigido aqui
 
         if not fixture_id:
             continue
 
-        escanteios = get_escanteios_total(fixture_id)
+        escanteios = get_escanteios(fixture_id)
 
         if escanteios is None:
             continue
