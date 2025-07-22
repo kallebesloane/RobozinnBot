@@ -13,7 +13,10 @@ def verificar_escanteios(jogos):
         goals = jogo.get("goals", {})
         league = jogo.get("league", {})
         status = fixture.get("status", {})
-        minutos = status.get("elapsed", 0)
+
+        minutos = status.get("elapsed")
+        if minutos is None:
+            minutos = 0  # Corrigido aqui
 
         if minutos < 80:
             continue
@@ -30,7 +33,7 @@ def verificar_escanteios(jogos):
             continue
 
         fixture_id = fixture.get("id")
-        liga = league.get("name", "Liga Desconhecida")  # Corrigido aqui
+        liga = league.get("name", "Liga Desconhecida")
 
         if not fixture_id:
             continue
